@@ -24,7 +24,9 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = async () => {
+  const handleLogin = async (e) => {
+    // Prevent form default submission which would reload the page
+    if (e && e.preventDefault) e.preventDefault();
     setLoading(true);
     setError("");
     try {
@@ -32,10 +34,14 @@ const LoginPage = () => {
         name,
         password
       });
+      // Save token and log successful login
       localStorage.setItem("token", response.data.token);
+      console.log('User logged in:', response.data.name || name);
       navigate("/dashboard");
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
+      const message = err.response?.data?.message || "Login failed";
+      console.log('Login failed:', message);
+      setError(message);
     } finally {
       setLoading(false);
     }
