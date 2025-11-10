@@ -59,7 +59,7 @@ const RegisterPage  = () => {
           mb={3}
           color="primary.main"
         >
-          Login
+          Register
         </Typography>
         <Divider sx={{ mb: 4 }} />
         
@@ -115,9 +115,20 @@ const RegisterPage  = () => {
               mt: 2,
             }}
           >
-            {loading ? "Logging in..." : "Login"}
+            {loading ? "Registering..." : "Register"}
           </Button>
         </Stack>
+        <Divider sx={{ mt: 3 }} />
+        <Typography variant="body2" align="center" sx={{ mt: 2 }}>
+            Already have an account?{' '}
+            <Button
+                variant="text"
+                onClick={() => navigate("/")}
+                sx={{ textTransform: "none", ml: 1 }}
+            >
+                Login
+            </Button>
+        </Typography>
       </Paper>
     </Container>
   );
