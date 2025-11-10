@@ -33,6 +33,10 @@ const DashboardPage = () => {
     const [editOpen, setEditOpen] = useState(false);
     const [current, setCurrent] = useState(null);
     const [saving, setSaving] = useState(false);
+    // Add-product state
+    const [addOpen, setAddOpen] = useState(false);
+    const [newProduct, setNewProduct] = useState({ name: '', price: 0, description: '', stock_quantity: 0 });
+    const [adding, setAdding] = useState(false);
 
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
@@ -102,11 +106,36 @@ const DashboardPage = () => {
         }
     };
 
+    const openAdd = () => {
+        setNewProduct({ name: '', price: 0, description: '', stock_quantity: 0 });
+        setAddOpen(true);
+    };
+
+    const handleAddSave = async () => {
+        setAdding(true);
+        try {
+            const payload = { ...newProduct };
+            const res = await axios.post(`${API_BASE}/api/products`, payload, { headers: { Authorization: `Bearer ${token}` } });
+            const created = res.data.product || res.data;
+            setProducts(prev => [created, ...prev]);
+            setAddOpen(false);
+            console.log('Product created', created._id || created.id);
+        } catch (err) {
+            console.error('Create failed:', err?.response?.data || err.message);
+            alert(err.response?.data?.message || 'Create failed');
+        } finally {
+            setAdding(false);
+        }
+    };
+
     return (
         <Container sx={{ mt: 4 }}>
             <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
                 <Typography variant="h4">Products</Typography>
-                <Typography variant="body2">Logged: {token ? 'Yes' : 'No'}</Typography>
+                <Stack direction="row" spacing={1} alignItems="center">
+                    <Button variant="contained" onClick={openAdd}>Add Product</Button>
+                    <Typography variant="body2">Logged: {token ? 'Yes' : 'No'}</Typography>
+                </Stack>
             </Stack>
 
             {loading ? (
@@ -163,6 +192,23 @@ const DashboardPage = () => {
                     <Button onClick={() => setEditOpen(false)}>Cancel</Button>
                     <Button onClick={handleSave} variant="contained" disabled={saving}>{saving ? 'Saving...' : 'Save'}</Button>
                 </DialogActions>
+            </Dialog>
+
+            {/* Add product dialog */}
+            <Dialog open={addOpen} onClose={() => setAddOpen(false)} maxWidth="sm" fullWidth>
+                <DialogTitle>Add Product</DialogTitle>
+                <DialogContent>
+                    <Stack component="form" spacing={2} sx={{ mt: 1 }} onSubmit={(e) => { e.preventDefault(); handleAddSave(); }}>
+                        <TextField label="Name" value={newProduct.name} onChange={(e) => setNewProduct(prev => ({ ...prev, name: e.target.value }))} fullWidth required />
+                        <TextField label="Price" type="number" value={newProduct.price} onChange={(e) => setNewProduct(prev => ({ ...prev, price: Number(e.target.value) }))} fullWidth required inputProps={{ min: 0, step: '0.01' }} />
+                        <TextField label="Stock Quantity" type="number" value={newProduct.stock_quantity} onChange={(e) => setNewProduct(prev => ({ ...prev, stock_quantity: Number(e.target.value) }))} fullWidth required inputProps={{ min: 0, step: '1' }} />
+                        <TextField label="Description" value={newProduct.description} onChange={(e) => setNewProduct(prev => ({ ...prev, description: e.target.value }))} fullWidth multiline rows={3} />
+                        <Stack direction="row" spacing={1} justifyContent="flex-end" sx={{ pt: 1 }}>
+                            <Button onClick={() => setAddOpen(false)}>Cancel</Button>
+                            <Button type="submit" variant="contained" disabled={adding}>{adding ? 'Adding...' : 'Add'}</Button>
+                        </Stack>
+                    </Stack>
+                </DialogContent>
             </Dialog>
         </Container>
     );
